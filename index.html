@@ -1,0 +1,1053 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>Golf Sportsvan Manager</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+    :root {
+        --bg-main: #f4f1e9;
+        --bg-card: #ffffff;
+        --accent: #2f6f8f;
+        --accent-soft: #d6e3ec;
+        --text-main: #222222;
+        --border: #cccccc;
+        --danger: #b00020;
+        --warning: #b8860b;
+        --success: #2e7d32;
+    }
+
+    * {
+        box-sizing: border-box;
+    }
+
+    body {
+        margin: 0;
+        font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", system-ui, sans-serif;
+        background: var(--bg-main);
+        color: var(--text-main);
+    }
+
+    header {
+        background: var(--accent);
+        color: white;
+        padding: 12px 16px;
+        text-align: center;
+    }
+
+    header h1 {
+        margin: 4px 0;
+        font-size: 1.3rem;
+    }
+
+    header .subtitle {
+        font-size: 0.9rem;
+        opacity: 0.9;
+    }
+
+    header .date {
+        font-size: 0.8rem;
+        opacity: 0.85;
+        margin-top: 4px;
+    }
+
+    main {
+        max-width: 900px;
+        margin: 10px auto 60px auto;
+        padding: 0 10px 20px 10px;
+    }
+
+    .tabs {
+        display: flex;
+        gap: 6px;
+        margin-bottom: 10px;
+        overflow-x: auto;
+        padding-bottom: 4px;
+    }
+
+    .tab-btn {
+        flex: 1;
+        min-width: 120px;
+        border: none;
+        padding: 8px;
+        border-radius: 999px;
+        background: var(--accent-soft);
+        color: var(--accent);
+        font-size: 0.85rem;
+        font-weight: 600;
+        cursor: pointer;
+        white-space: nowrap;
+    }
+
+    .tab-btn.active {
+        background: var(--accent);
+        color: white;
+    }
+
+    section.panel {
+        display: none;
+        background: var(--bg-card);
+        border-radius: 10px;
+        padding: 12px;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+        border: 1px solid #e0ddd4;
+    }
+
+    section.panel.active {
+        display: block;
+    }
+
+    h2 {
+        font-size: 1.1rem;
+        margin-top: 0;
+        margin-bottom: 8px;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    h2 span.emoji {
+        font-size: 1.2rem;
+    }
+
+    .field-group {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        margin-bottom: 8px;
+    }
+
+    label {
+        font-size: 0.85rem;
+        font-weight: 600;
+    }
+
+    input[type="text"],
+    input[type="date"],
+    input[type="number"],
+    textarea,
+    select {
+        padding: 7px 9px;
+        border-radius: 6px;
+        border: 1px solid var(--border);
+        font-size: 0.9rem;
+        font-family: inherit;
+        background: #fafafa;
+    }
+
+    textarea {
+        min-height: 90px;
+        resize: vertical;
+    }
+
+    .btn-row {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+        margin-top: 6px;
+        margin-bottom: 4px;
+    }
+
+    button.primary,
+    button.secondary,
+    button.danger {
+        border-radius: 999px;
+        padding: 7px 14px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        border: none;
+        cursor: pointer;
+    }
+
+    button.primary {
+        background: var(--accent);
+        color: white;
+    }
+
+    button.secondary {
+        background: #e6e0d0;
+        color: #333;
+    }
+
+    button.danger {
+        background: var(--danger);
+        color: white;
+    }
+
+    .small-text {
+        font-size: 0.8rem;
+        opacity: 0.8;
+    }
+
+    .info-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 6px 12px;
+        margin-top: 4px;
+        font-size: 0.9rem;
+    }
+
+    @media (max-width: 600px) {
+        .info-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    .info-label {
+        font-weight: 600;
+        opacity: 0.85;
+    }
+
+    .info-value {
+        font-weight: 500;
+    }
+
+    .tag {
+        display: inline-block;
+        padding: 2px 7px;
+        border-radius: 999px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        background: var(--accent-soft);
+        color: var(--accent);
+        margin-left: 4px;
+    }
+
+    .status-chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        font-size: 0.8rem;
+        padding: 4px 8px;
+        border-radius: 999px;
+        margin-right: 4px;
+        margin-bottom: 4px;
+    }
+
+    .status-ok {
+        background: #e0f2e7;
+        color: var(--success);
+    }
+
+    .status-warning {
+        background: #fff4d5;
+        color: var(--warning);
+    }
+
+    .status-danger {
+        background: #fde0e4;
+        color: var(--danger);
+    }
+
+    .badge-km {
+        display: inline-block;
+        padding: 2px 7px;
+        border-radius: 999px;
+        background: #eee;
+        font-size: 0.75rem;
+        margin-left: 4px;
+    }
+
+    .list {
+        margin-top: 8px;
+        border-top: 1px solid #e0ddd4;
+        padding-top: 8px;
+        max-height: 280px;
+        overflow-y: auto;
+    }
+
+    .item {
+        padding: 8px 6px;
+        border-radius: 8px;
+        border: 1px solid #e0ddd4;
+        margin-bottom: 4px;
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+        background: #faf9f5;
+        font-size: 0.85rem;
+    }
+
+    .item-header {
+        display: flex;
+        justify-content: space-between;
+        gap: 8px;
+        flex-wrap: wrap;
+    }
+
+    .item-main {
+        font-weight: 600;
+    }
+
+    .item-sub {
+        opacity: 0.8;
+    }
+
+    .item-footer {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 8px;
+        flex-wrap: wrap;
+        margin-top: 4px;
+    }
+
+    .item-footer button {
+        font-size: 0.75rem;
+        padding: 3px 10px;
+    }
+
+    footer {
+        text-align: center;
+        font-size: 0.75rem;
+        padding: 8px 6px;
+        color: #555;
+        border-top: 1px solid #d0ccc0;
+        background: #f0ece4;
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+    }
+</style>
+</head>
+<body>
+
+<header>
+    <h1>Golf Sportsvan</h1>
+    <div class="subtitle">Carnet de bord &amp; entretiens</div>
+    <div class="date" id="todayDate"></div>
+</header>
+
+<main>
+    <div class="tabs">
+        <button class="tab-btn active" data-target="infos">Infos voiture</button>
+        <button class="tab-btn" data-target="entretiens">Entretiens</button>
+        <button class="tab-btn" data-target="pneus">Pneus</button>
+        <button class="tab-btn" data-target="assurance">Assurance &amp; CT</button>
+        <button class="tab-btn" data-target="notes">Notes</button>
+    </div>
+
+    <!-- INFOS VOITURE -->
+    <section class="panel active" id="infos">
+        <h2><span class="emoji">🚗</span> Infos voiture <span class="tag">Profil</span></h2>
+        <div class="small-text">
+            Renseigne une fois les informations de ta Golf Sportsvan. Elles sont sauvegardées sur cet appareil (localStorage).
+        </div>
+
+        <div class="field-group">
+            <label for="carModel">Modèle précis</label>
+            <input type="text" id="carModel" placeholder="Golf Sportsvan 1.6 TDI, etc.">
+        </div>
+
+        <div class="field-group">
+            <label for="carPlate">Immatriculation</label>
+            <input type="text" id="carPlate" placeholder="1-ABC-123">
+        </div>
+
+        <div class="field-group">
+            <label for="carVin">VIN (châssis)</label>
+            <input type="text" id="carVin" placeholder="WVWZZZ...">
+        </div>
+
+        <div class="field-group">
+            <label for="carPurchaseDate">Date d'achat</label>
+            <input type="date" id="carPurchaseDate">
+        </div>
+
+        <div class="field-group">
+            <label for="carPurchaseKm">Kilométrage à l'achat</label>
+            <input type="number" id="carPurchaseKm" placeholder="en km">
+        </div>
+
+        <div class="field-group">
+            <label for="currentKm">Kilométrage actuel (approx.)</label>
+            <input type="number" id="currentKm" placeholder="en km">
+        </div>
+
+        <div class="btn-row">
+            <button class="primary" id="saveCarInfoBtn">Enregistrer les infos</button>
+            <button class="secondary" id="resetCarInfoBtn">Vider le formulaire</button>
+        </div>
+
+        <div id="carInfoSummary" class="small-text"></div>
+    </section>
+
+    <!-- ENTRETIENS -->
+    <section class="panel" id="entretiens">
+        <h2><span class="emoji">🛠️</span> Carnet d'entretiens <span class="tag">Historique</span></h2>
+        <div class="small-text">
+            Ajoute chaque entretien (révision, vidange, freins…) avec date, km, garage et coût.
+        </div>
+
+        <div class="field-group">
+            <label for="entDate">Date</label>
+            <input type="date" id="entDate">
+        </div>
+
+        <div class="field-group">
+            <label for="entKm">Kilométrage</label>
+            <input type="number" id="entKm" placeholder="en km">
+        </div>
+
+        <div class="field-group">
+            <label for="entType">Type d'intervention</label>
+            <input type="text" id="entType" placeholder="Vidange, révision, freins avant…">
+        </div>
+
+        <div class="field-group">
+            <label for="entGarage">Garage / Lieu</label>
+            <input type="text" id="entGarage" placeholder="Nom du garage">
+        </div>
+
+        <div class="field-group">
+            <label for="entCost">Coût (optionnel, €)</label>
+            <input type="number" id="entCost" step="0.01" placeholder="ex. 250">
+        </div>
+
+        <div class="field-group">
+            <label for="entNotes">Notes (optionnel)</label>
+            <textarea id="entNotes" placeholder="Détails, pièces changées, remarques…"></textarea>
+        </div>
+
+        <div class="btn-row">
+            <button class="primary" id="addEntretienBtn">Ajouter à l'historique</button>
+            <button class="secondary" id="clearEntFormBtn">Effacer le formulaire</button>
+        </div>
+
+        <div id="entretienStats" class="small-text"></div>
+
+        <div class="list" id="entretienList"></div>
+    </section>
+
+    <!-- PNEUS -->
+    <section class="panel" id="pneus">
+        <h2><span class="emoji">🛞</span> Pneus <span class="tag">Hiver / Été</span></h2>
+        <div class="small-text">
+            Suivi des pneus hiver / été : dimensions, montages et kilométrage.
+        </div>
+
+        <div class="field-group">
+            <label for="tyreSet">Jeu de pneus</label>
+            <select id="tyreSet">
+                <option value="Ete">Été</option>
+                <option value="Hiver">Hiver</option>
+                <option value="AllSeason">4 saisons</option>
+            </select>
+        </div>
+
+        <div class="field-group">
+            <label for="tyreDimension">Dimension</label>
+            <input type="text" id="tyreDimension" placeholder="ex. 205/55 R16">
+        </div>
+
+        <div class="field-group">
+            <label for="tyreBrand">Marque / modèle</label>
+            <input type="text" id="tyreBrand" placeholder="ex. Michelin CrossClimate">
+        </div>
+
+        <div class="field-group">
+            <label for="tyreDate">Date de montage</label>
+            <input type="date" id="tyreDate">
+        </div>
+
+        <div class="field-group">
+            <label for="tyreKm">Kilométrage au montage</label>
+            <input type="number" id="tyreKm" placeholder="en km">
+        </div>
+
+        <div class="field-group">
+            <label for="tyreNotes">Notes (usure, remarques…)</label>
+            <textarea id="tyreNotes"></textarea>
+        </div>
+
+        <div class="btn-row">
+            <button class="primary" id="addTyreBtn">Enregistrer ce jeu</button>
+            <button class="secondary" id="clearTyreFormBtn">Effacer le formulaire</button>
+        </div>
+
+        <div class="list" id="tyreList"></div>
+    </section>
+
+    <!-- ASSURANCE & CT -->
+    <section class="panel" id="assurance">
+        <h2><span class="emoji">📅</span> Assurance &amp; Contrôle technique <span class="tag">Échéances</span></h2>
+        <div class="small-text">
+            Suivi des dates importantes. Les indicateurs passent en <b>orange</b> (moins de 30 jours) ou en <b>rouge</b> (échéance dépassée).
+        </div>
+
+        <div class="field-group">
+            <label for="insurer">Assureur</label>
+            <input type="text" id="insurer" placeholder="Compagnie d'assurance">
+        </div>
+
+        <div class="field-group">
+            <label for="insuranceEnd">Assurance RC – fin de validité</label>
+            <input type="date" id="insuranceEnd">
+        </div>
+
+        <div class="field-group">
+            <label for="omniumEnd">Omnium (si applicable) – fin de validité</label>
+            <input type="date" id="omniumEnd">
+        </div>
+
+        <div class="field-group">
+            <label for="ctLast">Contrôle technique – date du dernier passage</label>
+            <input type="date" id="ctLast">
+        </div>
+
+        <div class="field-group">
+            <label for="ctNext">Prochain contrôle technique (échéance)</label>
+            <input type="date" id="ctNext">
+        </div>
+
+        <div class="btn-row">
+            <button class="primary" id="saveInsuranceBtn">Enregistrer les dates</button>
+            <button class="secondary" id="resetInsuranceBtn">Vider le formulaire</button>
+        </div>
+
+        <div id="deadlinesStatus" style="margin-top:8px;"></div>
+    </section>
+
+    <!-- NOTES -->
+    <section class="panel" id="notes">
+        <h2><span class="emoji">📝</span> Notes diverses <span class="tag">Mémo</span></h2>
+        <div class="small-text">
+            Espace libre pour noter tout ce qui concerne la Golf Sportsvan (bruits, idées, pièces à commander…).
+        </div>
+
+        <div class="field-group">
+            <label for="notesText">Notes</label>
+            <textarea id="notesText" placeholder="Tes remarques, mémos, idées…"></textarea>
+        </div>
+
+        <div class="btn-row">
+            <button class="primary" id="saveNotesBtn">Sauvegarder les notes</button>
+            <button class="secondary" id="clearNotesBtn">Effacer les notes</button>
+        </div>
+    </section>
+</main>
+
+<footer>
+    Golf Sportsvan Manager · v1.0 · © Pierre Charlier 2025
+</footer>
+
+<script>
+    // ----- Utilitaires -----
+    function formatDateFR(dateStr) {
+        if (!dateStr) return "";
+        const d = new Date(dateStr);
+        if (isNaN(d)) return dateStr;
+        const day = String(d.getDate()).padStart(2, "0");
+        const month = String(d.getMonth() + 1).padStart(2, "0");
+        const year = d.getFullYear();
+        return day + "/" + month + "/" + year;
+    }
+
+    function todayFR() {
+        const d = new Date();
+        const day = String(d.getDate()).padStart(2, "0");
+        const month = String(d.getMonth() + 1).padStart(2, "0");
+        const year = d.getFullYear();
+        return day + "/" + month + "/" + year;
+    }
+
+    function daysDiffFromToday(dateStr) {
+        if (!dateStr) return null;
+        const target = new Date(dateStr);
+        if (isNaN(target)) return null;
+        const today = new Date();
+        today.setHours(0,0,0,0);
+        target.setHours(0,0,0,0);
+        const diffMs = target - today;
+        return Math.round(diffMs / (1000 * 60 * 60 * 24));
+    }
+
+    // ----- Date dans le header -----
+    document.getElementById("todayDate").textContent = "Aujourd'hui : " + todayFR();
+
+    // ----- Gestion des onglets -----
+    const tabButtons = document.querySelectorAll(".tab-btn");
+    const panels = document.querySelectorAll(".panel");
+
+    tabButtons.forEach(btn => {
+        btn.addEventListener("click", () => {
+            tabButtons.forEach(b => b.classList.remove("active"));
+            panels.forEach(p => p.classList.remove("active"));
+            btn.classList.add("active");
+            const target = btn.dataset.target;
+            document.getElementById(target).classList.add("active");
+        });
+    });
+
+    // ----- Stockage -----
+    const STORAGE_KEYS = {
+        carInfo: "golfSportsvan_carInfo",
+        maint: "golfSportsvan_entretiens",
+        tyres: "golfSportsvan_pneus",
+        insurance: "golfSportsvan_assurance_ct",
+        notes: "golfSportsvan_notes"
+    };
+
+    // ----- Infos voiture -----
+    const carModel = document.getElementById("carModel");
+    const carPlate = document.getElementById("carPlate");
+    const carVin = document.getElementById("carVin");
+    const carPurchaseDate = document.getElementById("carPurchaseDate");
+    const carPurchaseKm = document.getElementById("carPurchaseKm");
+    const currentKm = document.getElementById("currentKm");
+    const carInfoSummary = document.getElementById("carInfoSummary");
+
+    function loadCarInfo() {
+        const data = localStorage.getItem(STORAGE_KEYS.carInfo);
+        if (!data) {
+            carInfoSummary.textContent = "Aucune information enregistrée pour l'instant.";
+            return;
+        }
+        const info = JSON.parse(data);
+        carModel.value = info.model || "";
+        carPlate.value = info.plate || "";
+        carVin.value = info.vin || "";
+        carPurchaseDate.value = info.purchaseDate || "";
+        carPurchaseKm.value = info.purchaseKm || "";
+        currentKm.value = info.currentKm || "";
+        updateCarInfoSummary();
+    }
+
+    function updateCarInfoSummary() {
+        const model = carModel.value.trim() || "Golf Sportsvan";
+        const plate = carPlate.value.trim() || "—";
+        const vin = carVin.value.trim() || "—";
+        const dAchat = carPurchaseDate.value ? formatDateFR(carPurchaseDate.value) : "—";
+        const kmAchat = carPurchaseKm.value ? carPurchaseKm.value + " km" : "—";
+        const kmActuel = currentKm.value ? currentKm.value + " km" : "—";
+
+        carInfoSummary.innerHTML = `
+            <div class="info-grid">
+                <div class="info-label">Modèle</div>
+                <div class="info-value">${model}</div>
+
+                <div class="info-label">Immatriculation</div>
+                <div class="info-value">${plate}</div>
+
+                <div class="info-label">VIN</div>
+                <div class="info-value">${vin}</div>
+
+                <div class="info-label">Achat</div>
+                <div class="info-value">${dAchat} (${kmAchat})</div>
+
+                <div class="info-label">Kilométrage actuel</div>
+                <div class="info-value">${kmActuel}</div>
+            </div>
+        `;
+    }
+
+    document.getElementById("saveCarInfoBtn").addEventListener("click", () => {
+        const info = {
+            model: carModel.value.trim(),
+            plate: carPlate.value.trim(),
+            vin: carVin.value.trim(),
+            purchaseDate: carPurchaseDate.value,
+            purchaseKm: carPurchaseKm.value,
+            currentKm: currentKm.value
+        };
+        localStorage.setItem(STORAGE_KEYS.carInfo, JSON.stringify(info));
+        updateCarInfoSummary();
+        alert("Infos voiture enregistrées.");
+    });
+
+    document.getElementById("resetCarInfoBtn").addEventListener("click", () => {
+        carModel.value = "";
+        carPlate.value = "";
+        carVin.value = "";
+        carPurchaseDate.value = "";
+        carPurchaseKm.value = "";
+        currentKm.value = "";
+        carInfoSummary.textContent = "Aucune information enregistrée pour l'instant.";
+    });
+
+    // ----- Carnet d'entretiens -----
+    const entDate = document.getElementById("entDate");
+    const entKm = document.getElementById("entKm");
+    const entType = document.getElementById("entType");
+    const entGarage = document.getElementById("entGarage");
+    const entCost = document.getElementById("entCost");
+    const entNotes = document.getElementById("entNotes");
+    const entretienList = document.getElementById("entretienList");
+    const entretienStats = document.getElementById("entretienStats");
+
+    function loadEntretiens() {
+        const data = localStorage.getItem(STORAGE_KEYS.maint);
+        let list = [];
+        if (data) {
+            list = JSON.parse(data);
+        }
+        renderEntretiens(list);
+    }
+
+    function renderEntretiens(list) {
+        if (!Array.isArray(list)) list = [];
+        entretienList.innerHTML = "";
+        if (list.length === 0) {
+            entretienList.innerHTML = `<div class="small-text">Aucun entretien enregistré pour l'instant.</div>`;
+            entretienStats.textContent = "";
+            return;
+        }
+
+        list.forEach((item, index) => {
+            const div = document.createElement("div");
+            div.className = "item";
+
+            const dateStr = item.date ? formatDateFR(item.date) : "Date ?";
+            const kmStr = item.km ? item.km + " km" : "km ?";
+
+            div.innerHTML = `
+                <div class="item-header">
+                    <div class="item-main">${dateStr} · ${item.type || "Entretien"}</div>
+                    <div class="item-sub">${kmStr}</div>
+                </div>
+                <div class="item-sub">
+                    ${item.garage ? "Garage : " + item.garage + " · " : ""}
+                    ${item.cost ? "Coût : " + item.cost + " €" : ""}
+                </div>
+                ${item.notes ? `<div class="item-sub">${item.notes}</div>` : ""}
+            `;
+
+            const footer = document.createElement("div");
+            footer.className = "item-footer";
+
+            const smallInfo = document.createElement("div");
+            smallInfo.className = "small-text";
+            smallInfo.textContent = "N° " + (index + 1);
+
+            const btnDelete = document.createElement("button");
+            btnDelete.className = "danger";
+            btnDelete.textContent = "Supprimer";
+            btnDelete.addEventListener("click", () => {
+                deleteEntretien(index);
+            });
+
+            footer.appendChild(smallInfo);
+            footer.appendChild(btnDelete);
+            div.appendChild(footer);
+
+            entretienList.appendChild(div);
+        });
+
+        // stats simples
+        const last = list[list.length - 1];
+        const dateLast = last.date ? formatDateFR(last.date) : "—";
+        const kmLast = last.km ? last.km + " km" : "—";
+        entretienStats.textContent = `Total entretiens : ${list.length} · Dernier entretien : ${dateLast} (${kmLast})`;
+    }
+
+    function deleteEntretien(index) {
+        const data = localStorage.getItem(STORAGE_KEYS.maint);
+        if (!data) return;
+        const list = JSON.parse(data);
+        if (!Array.isArray(list)) return;
+        list.splice(index, 1);
+        localStorage.setItem(STORAGE_KEYS.maint, JSON.stringify(list));
+        renderEntretiens(list);
+    }
+
+    document.getElementById("addEntretienBtn").addEventListener("click", () => {
+        const dateVal = entDate.value;
+        const kmVal = entKm.value.trim();
+        const typeVal = entType.value.trim();
+
+        if (!dateVal || !kmVal || !typeVal) {
+            alert("Merci de remplir au minimum la date, le kilométrage et le type d'intervention.");
+            return;
+        }
+
+        const data = localStorage.getItem(STORAGE_KEYS.maint);
+        let list = [];
+        if (data) {
+            list = JSON.parse(data);
+        }
+
+        list.push({
+            date: dateVal,
+            km: kmVal,
+            type: typeVal,
+            garage: entGarage.value.trim(),
+            cost: entCost.value.trim(),
+            notes: entNotes.value.trim()
+        });
+
+        // tri par date (plus récent en bas)
+        list.sort((a, b) => new Date(a.date) - new Date(b.date));
+        localStorage.setItem(STORAGE_KEYS.maint, JSON.stringify(list));
+        renderEntretiens(list);
+
+        alert("Entretien ajouté.");
+    });
+
+    document.getElementById("clearEntFormBtn").addEventListener("click", () => {
+        entDate.value = "";
+        entKm.value = "";
+        entType.value = "";
+        entGarage.value = "";
+        entCost.value = "";
+        entNotes.value = "";
+    });
+
+    // ----- Pneus -----
+    const tyreSet = document.getElementById("tyreSet");
+    const tyreDimension = document.getElementById("tyreDimension");
+    const tyreBrand = document.getElementById("tyreBrand");
+    const tyreDate = document.getElementById("tyreDate");
+    const tyreKm = document.getElementById("tyreKm");
+    const tyreNotes = document.getElementById("tyreNotes");
+    const tyreList = document.getElementById("tyreList");
+
+    function loadTyres() {
+        const data = localStorage.getItem(STORAGE_KEYS.tyres);
+        let list = [];
+        if (data) list = JSON.parse(data);
+        renderTyres(list);
+    }
+
+    function renderTyres(list) {
+        tyreList.innerHTML = "";
+        if (!Array.isArray(list) || list.length === 0) {
+            tyreList.innerHTML = `<div class="small-text">Aucun jeu de pneus enregistré pour l'instant.</div>`;
+            return;
+        }
+
+        list.forEach((t, index) => {
+            const div = document.createElement("div");
+            div.className = "item";
+
+            const setLabel = t.set || "Pneus";
+            const dateStr = t.date ? formatDateFR(t.date) : "Date ?";
+            const kmStr = t.km ? t.km + " km" : "km ?";
+            const typeText =
+                setLabel === "Ete" ? "Pneus été" :
+                setLabel === "Hiver" ? "Pneus hiver" :
+                setLabel === "AllSeason" ? "Pneus 4 saisons" : setLabel;
+
+            div.innerHTML = `
+                <div class="item-header">
+                    <div class="item-main">${typeText}</div>
+                    <div class="item-sub">${dateStr} · ${kmStr}</div>
+                </div>
+                <div class="item-sub">
+                    ${t.dimension ? t.dimension + " · " : ""}
+                    ${t.brand ? t.brand : ""}
+                </div>
+                ${t.notes ? `<div class="item-sub">${t.notes}</div>` : ""}
+            `;
+
+            const footer = document.createElement("div");
+            footer.className = "item-footer";
+
+            const smallInfo = document.createElement("div");
+            smallInfo.className = "small-text";
+            smallInfo.textContent = "N° " + (index + 1);
+
+            const btnDelete = document.createElement("button");
+            btnDelete.className = "danger";
+            btnDelete.textContent = "Supprimer";
+            btnDelete.addEventListener("click", () => {
+                deleteTyre(index);
+            });
+
+            footer.appendChild(smallInfo);
+            footer.appendChild(btnDelete);
+            div.appendChild(footer);
+
+            tyreList.appendChild(div);
+        });
+    }
+
+    function deleteTyre(index) {
+        const data = localStorage.getItem(STORAGE_KEYS.tyres);
+        if (!data) return;
+        let list = JSON.parse(data);
+        if (!Array.isArray(list)) return;
+        list.splice(index, 1);
+        localStorage.setItem(STORAGE_KEYS.tyres, JSON.stringify(list));
+        renderTyres(list);
+    }
+
+    document.getElementById("addTyreBtn").addEventListener("click", () => {
+        const setVal = tyreSet.value;
+        const dimVal = tyreDimension.value.trim();
+        const brandVal = tyreBrand.value.trim();
+        const dateVal = tyreDate.value;
+        const kmVal = tyreKm.value.trim();
+
+        if (!dimVal || !dateVal || !kmVal) {
+            alert("Merci de renseigner au minimum la dimension, la date et le kilométrage au montage.");
+            return;
+        }
+
+        const data = localStorage.getItem(STORAGE_KEYS.tyres);
+        let list = [];
+        if (data) list = JSON.parse(data);
+
+        list.push({
+            set: setVal,
+            dimension: dimVal,
+            brand: brandVal,
+            date: dateVal,
+            km: kmVal,
+            notes: tyreNotes.value.trim()
+        });
+
+        // ordre : pneus hiver / été peu important, on les garde par date de montage
+        list.sort((a, b) => new Date(a.date) - new Date(b.date));
+
+        localStorage.setItem(STORAGE_KEYS.tyres, JSON.stringify(list));
+        renderTyres(list);
+        alert("Jeu de pneus enregistré.");
+    });
+
+    document.getElementById("clearTyreFormBtn").addEventListener("click", () => {
+        tyreSet.value = "Ete";
+        tyreDimension.value = "";
+        tyreBrand.value = "";
+        tyreDate.value = "";
+        tyreKm.value = "";
+        tyreNotes.value = "";
+    });
+
+    // ----- Assurance & CT -----
+    const insurer = document.getElementById("insurer");
+    const insuranceEnd = document.getElementById("insuranceEnd");
+    const omniumEnd = document.getElementById("omniumEnd");
+    const ctLast = document.getElementById("ctLast");
+    const ctNext = document.getElementById("ctNext");
+    const deadlinesStatus = document.getElementById("deadlinesStatus");
+
+    function loadInsurance() {
+        const data = localStorage.getItem(STORAGE_KEYS.insurance);
+        if (!data) {
+            deadlinesStatus.innerHTML = `<div class="small-text">Aucune échéance enregistrée pour l'instant.</div>`;
+            return;
+        }
+        const info = JSON.parse(data);
+        insurer.value = info.insurer || "";
+        insuranceEnd.value = info.insuranceEnd || "";
+        omniumEnd.value = info.omniumEnd || "";
+        ctLast.value = info.ctLast || "";
+        ctNext.value = info.ctNext || "";
+        updateDeadlinesStatus();
+    }
+
+    function createStatusChip(label, dateStr) {
+        const diff = daysDiffFromToday(dateStr);
+        let cls = "status-ok";
+        let text = "";
+        const formatted = formatDateFR(dateStr);
+
+        if (diff === null) {
+            cls = "status-danger";
+            text = label + " : date invalide";
+        } else if (diff < 0) {
+            cls = "status-danger";
+            text = label + " dépassée le " + formatted;
+        } else if (diff === 0) {
+            cls = "status-danger";
+            text = label + " aujourd'hui (" + formatted + ")";
+        } else if (diff <= 30) {
+            cls = "status-warning";
+            text = label + " dans " + diff + " j (" + formatted + ")";
+        } else {
+            cls = "status-ok";
+            text = label + " dans " + diff + " j (" + formatted + ")";
+        }
+
+        return `<span class="status-chip ${cls}">${text}</span>`;
+    }
+
+    function updateDeadlinesStatus() {
+        let html = "";
+
+        if (insurer.value.trim()) {
+            html += `<div class="small-text">Assureur : <b>${insurer.value.trim()}</b></div>`;
+        }
+
+        if (insuranceEnd.value) {
+            html += createStatusChip("Assurance RC", insuranceEnd.value);
+        }
+
+        if (omniumEnd.value) {
+            html += createStatusChip("Omnium", omniumEnd.value);
+        }
+
+        if (ctNext.value) {
+            html += createStatusChip("Contrôle technique", ctNext.value);
+        }
+
+        if (ctLast.value) {
+            html += `<div class="small-text">Dernier contrôle technique : <b>${formatDateFR(ctLast.value)}</b></div>`;
+        }
+
+        if (!html) {
+            html = `<div class="small-text">Aucune échéance enregistrée pour l'instant.</div>`;
+        }
+
+        deadlinesStatus.innerHTML = html;
+    }
+
+    document.getElementById("saveInsuranceBtn").addEventListener("click", () => {
+        const info = {
+            insurer: insurer.value.trim(),
+            insuranceEnd: insuranceEnd.value,
+            omniumEnd: omniumEnd.value,
+            ctLast: ctLast.value,
+            ctNext: ctNext.value
+        };
+        localStorage.setItem(STORAGE_KEYS.insurance, JSON.stringify(info));
+        updateDeadlinesStatus();
+        alert("Échéances enregistrées.");
+    });
+
+    document.getElementById("resetInsuranceBtn").addEventListener("click", () => {
+        insurer.value = "";
+        insuranceEnd.value = "";
+        omniumEnd.value = "";
+        ctLast.value = "";
+        ctNext.value = "";
+        deadlinesStatus.innerHTML = `<div class="small-text">Aucune échéance enregistrée pour l'instant.</div>`;
+    });
+
+    insuranceEnd.addEventListener("change", updateDeadlinesStatus);
+    omniumEnd.addEventListener("change", updateDeadlinesStatus);
+    ctNext.addEventListener("change", updateDeadlinesStatus);
+
+    // ----- Notes -----
+    const notesText = document.getElementById("notesText");
+
+    function loadNotes() {
+        const txt = localStorage.getItem(STORAGE_KEYS.notes);
+        if (txt !== null) {
+            notesText.value = txt;
+        }
+    }
+
+    document.getElementById("saveNotesBtn").addEventListener("click", () => {
+        localStorage.setItem(STORAGE_KEYS.notes, notesText.value);
+        alert("Notes sauvegardées.");
+    });
+
+    document.getElementById("clearNotesBtn").addEventListener("click", () => {
+        if (confirm("Effacer toutes les notes ?")) {
+            notesText.value = "";
+            localStorage.removeItem(STORAGE_KEYS.notes);
+        }
+    });
+
+    // ----- Chargement initial -----
+    loadCarInfo();
+    loadEntretiens();
+    loadTyres();
+    loadInsurance();
+    loadNotes();
+</script>
+
+</body>
+</html>
