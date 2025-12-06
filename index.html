@@ -239,15 +239,6 @@
         color: var(--danger);
     }
 
-    .badge-km {
-        display: inline-block;
-        padding: 2px 7px;
-        border-radius: 999px;
-        background: #eee;
-        font-size: 0.75rem;
-        margin-left: 4px;
-    }
-
     .list {
         margin-top: 8px;
         border-top: 1px solid #e0ddd4;
@@ -326,6 +317,7 @@
         <button class="tab-btn" data-target="pneus">Pneus</button>
         <button class="tab-btn" data-target="assurance">Assurance &amp; CT</button>
         <button class="tab-btn" data-target="notes">Notes</button>
+        <button class="tab-btn" data-target="backup">Sauvegarde</button>
     </div>
 
     <!-- INFOS VOITURE -->
@@ -526,10 +518,39 @@
             <button class="secondary" id="clearNotesBtn">Effacer les notes</button>
         </div>
     </section>
+
+    <!-- SAUVEGARDE -->
+    <section class="panel" id="backup">
+        <h2><span class="emoji">💾</span> Sauvegarde <span class="tag">Export / Import</span></h2>
+        <div class="small-text">
+            Tu peux exporter toutes les données dans un fichier JSON, puis les réimporter plus tard (ou sur un autre appareil).
+        </div>
+
+        <div class="field-group">
+            <label>Sauvegarde actuelle</label>
+            <div class="btn-row">
+                <button class="primary" id="exportBtn">Exporter les données (JSON)</button>
+            </div>
+            <div class="small-text">
+                Un fichier <code>golfSportsvan_backup_YYYYMMDD.json</code> sera créé (Téléchargements / Fichiers).
+            </div>
+        </div>
+
+        <div class="field-group">
+            <label for="importFile">Restaurer à partir d'une sauvegarde</label>
+            <input type="file" id="importFile" accept=".json,application/json">
+        </div>
+
+        <div class="btn-row">
+            <button class="secondary" id="importBtn">Importer la sauvegarde</button>
+        </div>
+
+        <div id="backupInfo" class="small-text"></div>
+    </section>
 </main>
 
 <footer>
-    Golf Sportsvan Manager · v1.0 · © Pierre Charlier 2025
+    Golf Sportsvan Manager · v1.1 · © Pierre Charlier 2025
 </footer>
 
 <script>
@@ -675,6 +696,9 @@
     const entNotes = document.getElementById("entNotes");
     const entretienList = document.getElementById("entretienList");
     const entretienStats = document.getElementById("entretienStats");
+    const addEntretienBtn = document.getElementById("addEntretienBtn");
+
+    let currentEntretienEditIndex = null; // null = ajout, nombre = édition
 
     function loadEntretiens() {
         const data = localStorage.getItem(STORAGE_KEYS.maint);
@@ -720,6 +744,13 @@
             smallInfo.className = "small-text";
             smallInfo.textContent = "N° " + (index + 1);
 
+            const btnEdit = document.createElement("button");
+            btnEdit.className = "secondary";
+            btnEdit.textContent = "Modifier";
+            btnEdit.addEventListener("click", () => {
+                editEntretien(index);
+            });
+
             const btnDelete = document.createElement("button");
             btnDelete.className = "danger";
             btnDelete.textContent = "Supprimer";
@@ -728,6 +759,7 @@
             });
 
             footer.appendChild(smallInfo);
+            footer.appendChild(btnEdit);
             footer.appendChild(btnDelete);
             div.appendChild(footer);
 
@@ -741,6 +773,35 @@
         entretienStats.textContent = `Total entretiens : ${list.length} · Dernier entretien : ${dateLast} (${kmLast})`;
     }
 
+    function resetEntretienForm() {
+        entDate.value = "";
+        entKm.value = "";
+        entType.value = "";
+        entGarage.value = "";
+        entCost.value = "";
+        entNotes.value = "";
+        currentEntretienEditIndex = null;
+        addEntretienBtn.textContent = "Ajouter à l'historique";
+    }
+
+    function editEntretien(index) {
+        const data = localStorage.getItem(STORAGE_KEYS.maint);
+        if (!data) return;
+        const list = JSON.parse(data);
+        if (!Array.isArray(list) || !list[index]) return;
+        const item = list[index];
+
+        entDate.value = item.date || "";
+        entKm.value = item.km || "";
+        entType.value = item.type || "";
+        entGarage.value = item.garage || "";
+        entCost.value = item.cost || "";
+        entNotes.value = item.notes || "";
+
+        currentEntretienEditIndex = index;
+        addEntretienBtn.textContent = "Enregistrer la modification";
+    }
+
     function deleteEntretien(index) {
         const data = localStorage.getItem(STORAGE_KEYS.maint);
         if (!data) return;
@@ -748,10 +809,14 @@
         if (!Array.isArray(list)) return;
         list.splice(index, 1);
         localStorage.setItem(STORAGE_KEYS.maint, JSON.stringify(list));
+        // si on supprimait l'élément en cours d'édition, on réinitialise le formulaire
+        if (currentEntretienEditIndex === index) {
+            resetEntretienForm();
+        }
         renderEntretiens(list);
     }
 
-    document.getElementById("addEntretienBtn").addEventListener("click", () => {
+    addEntretienBtn.addEventListener("click", () => {
         const dateVal = entDate.value;
         const kmVal = entKm.value.trim();
         const typeVal = entType.value.trim();
@@ -767,31 +832,33 @@
             list = JSON.parse(data);
         }
 
-        list.push({
+        const newItem = {
             date: dateVal,
             km: kmVal,
             type: typeVal,
             garage: entGarage.value.trim(),
             cost: entCost.value.trim(),
             notes: entNotes.value.trim()
-        });
+        };
+
+        if (currentEntretienEditIndex === null) {
+            // ajout
+            list.push(newItem);
+        } else {
+            // modification
+            list[currentEntretienEditIndex] = newItem;
+        }
 
         // tri par date (plus récent en bas)
         list.sort((a, b) => new Date(a.date) - new Date(b.date));
         localStorage.setItem(STORAGE_KEYS.maint, JSON.stringify(list));
         renderEntretiens(list);
 
-        alert("Entretien ajouté.");
+        alert(currentEntretienEditIndex === null ? "Entretien ajouté." : "Entretien modifié.");
+        resetEntretienForm();
     });
 
-    document.getElementById("clearEntFormBtn").addEventListener("click", () => {
-        entDate.value = "";
-        entKm.value = "";
-        entType.value = "";
-        entGarage.value = "";
-        entCost.value = "";
-        entNotes.value = "";
-    });
+    document.getElementById("clearEntFormBtn").addEventListener("click", resetEntretienForm);
 
     // ----- Pneus -----
     const tyreSet = document.getElementById("tyreSet");
@@ -801,6 +868,9 @@
     const tyreKm = document.getElementById("tyreKm");
     const tyreNotes = document.getElementById("tyreNotes");
     const tyreList = document.getElementById("tyreList");
+    const addTyreBtn = document.getElementById("addTyreBtn");
+
+    let currentTyreEditIndex = null;
 
     function loadTyres() {
         const data = localStorage.getItem(STORAGE_KEYS.tyres);
@@ -847,6 +917,13 @@
             smallInfo.className = "small-text";
             smallInfo.textContent = "N° " + (index + 1);
 
+            const btnEdit = document.createElement("button");
+            btnEdit.className = "secondary";
+            btnEdit.textContent = "Modifier";
+            btnEdit.addEventListener("click", () => {
+                editTyre(index);
+            });
+
             const btnDelete = document.createElement("button");
             btnDelete.className = "danger";
             btnDelete.textContent = "Supprimer";
@@ -855,11 +932,41 @@
             });
 
             footer.appendChild(smallInfo);
+            footer.appendChild(btnEdit);
             footer.appendChild(btnDelete);
             div.appendChild(footer);
 
             tyreList.appendChild(div);
         });
+    }
+
+    function resetTyreForm() {
+        tyreSet.value = "Ete";
+        tyreDimension.value = "";
+        tyreBrand.value = "";
+        tyreDate.value = "";
+        tyreKm.value = "";
+        tyreNotes.value = "";
+        currentTyreEditIndex = null;
+        addTyreBtn.textContent = "Enregistrer ce jeu";
+    }
+
+    function editTyre(index) {
+        const data = localStorage.getItem(STORAGE_KEYS.tyres);
+        if (!data) return;
+        const list = JSON.parse(data);
+        if (!Array.isArray(list) || !list[index]) return;
+        const t = list[index];
+
+        tyreSet.value = t.set || "Ete";
+        tyreDimension.value = t.dimension || "";
+        tyreBrand.value = t.brand || "";
+        tyreDate.value = t.date || "";
+        tyreKm.value = t.km || "";
+        tyreNotes.value = t.notes || "";
+
+        currentTyreEditIndex = index;
+        addTyreBtn.textContent = "Enregistrer la modification";
     }
 
     function deleteTyre(index) {
@@ -869,10 +976,13 @@
         if (!Array.isArray(list)) return;
         list.splice(index, 1);
         localStorage.setItem(STORAGE_KEYS.tyres, JSON.stringify(list));
+        if (currentTyreEditIndex === index) {
+            resetTyreForm();
+        }
         renderTyres(list);
     }
 
-    document.getElementById("addTyreBtn").addEventListener("click", () => {
+    addTyreBtn.addEventListener("click", () => {
         const setVal = tyreSet.value;
         const dimVal = tyreDimension.value.trim();
         const brandVal = tyreBrand.value.trim();
@@ -888,31 +998,30 @@
         let list = [];
         if (data) list = JSON.parse(data);
 
-        list.push({
+        const newItem = {
             set: setVal,
             dimension: dimVal,
             brand: brandVal,
             date: dateVal,
             km: kmVal,
             notes: tyreNotes.value.trim()
-        });
+        };
 
-        // ordre : pneus hiver / été peu important, on les garde par date de montage
+        if (currentTyreEditIndex === null) {
+            list.push(newItem);
+        } else {
+            list[currentTyreEditIndex] = newItem;
+        }
+
         list.sort((a, b) => new Date(a.date) - new Date(b.date));
 
         localStorage.setItem(STORAGE_KEYS.tyres, JSON.stringify(list));
         renderTyres(list);
-        alert("Jeu de pneus enregistré.");
+        alert(currentTyreEditIndex === null ? "Jeu de pneus enregistré." : "Jeu de pneus modifié.");
+        resetTyreForm();
     });
 
-    document.getElementById("clearTyreFormBtn").addEventListener("click", () => {
-        tyreSet.value = "Ete";
-        tyreDimension.value = "";
-        tyreBrand.value = "";
-        tyreDate.value = "";
-        tyreKm.value = "";
-        tyreNotes.value = "";
-    });
+    document.getElementById("clearTyreFormBtn").addEventListener("click", resetTyreForm);
 
     // ----- Assurance & CT -----
     const insurer = document.getElementById("insurer");
@@ -1039,6 +1148,89 @@
             notesText.value = "";
             localStorage.removeItem(STORAGE_KEYS.notes);
         }
+    });
+
+    // ----- Sauvegarde (export / import) -----
+    const exportBtn = document.getElementById("exportBtn");
+    const importBtn = document.getElementById("importBtn");
+    const importFile = document.getElementById("importFile");
+    const backupInfo = document.getElementById("backupInfo");
+
+    exportBtn.addEventListener("click", () => {
+        const payload = {
+            version: "1.1",
+            dateExport: new Date().toISOString(),
+            carInfo: localStorage.getItem(STORAGE_KEYS.carInfo) ? JSON.parse(localStorage.getItem(STORAGE_KEYS.carInfo)) : null,
+            entretiens: localStorage.getItem(STORAGE_KEYS.maint) ? JSON.parse(localStorage.getItem(STORAGE_KEYS.maint)) : [],
+            pneus: localStorage.getItem(STORAGE_KEYS.tyres) ? JSON.parse(localStorage.getItem(STORAGE_KEYS.tyres)) : [],
+            assurance: localStorage.getItem(STORAGE_KEYS.insurance) ? JSON.parse(localStorage.getItem(STORAGE_KEYS.insurance)) : null,
+            notes: localStorage.getItem(STORAGE_KEYS.notes) || ""
+        };
+
+        const json = JSON.stringify(payload, null, 2);
+        const blob = new Blob([json], { type: "application/json" });
+        const url = URL.createObjectURL(blob);
+
+        const d = new Date();
+        const y = d.getFullYear();
+        const m = String(d.getMonth() + 1).padStart(2, "0");
+        const day = String(d.getDate()).padStart(2, "0");
+        const filename = `golfSportsvan_backup_${y}${m}${day}.json`;
+
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+
+        backupInfo.textContent = "Sauvegarde exportée : " + filename;
+    });
+
+    importBtn.addEventListener("click", () => {
+        const file = importFile.files[0];
+        if (!file) {
+            alert("Choisis d'abord un fichier de sauvegarde (.json).");
+            return;
+        }
+
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            try {
+                const data = JSON.parse(e.target.result);
+
+                if (data.carInfo !== undefined) {
+                    localStorage.setItem(STORAGE_KEYS.carInfo, JSON.stringify(data.carInfo || {}));
+                }
+                if (data.entretiens !== undefined) {
+                    localStorage.setItem(STORAGE_KEYS.maint, JSON.stringify(data.entretiens || []));
+                }
+                if (data.pneus !== undefined) {
+                    localStorage.setItem(STORAGE_KEYS.tyres, JSON.stringify(data.pneus || []));
+                }
+                if (data.assurance !== undefined) {
+                    localStorage.setItem(STORAGE_KEYS.insurance, JSON.stringify(data.assurance || {}));
+                }
+                if (data.notes !== undefined) {
+                    localStorage.setItem(STORAGE_KEYS.notes, data.notes || "");
+                }
+
+                // rechargement des écrans
+                loadCarInfo();
+                loadEntretiens();
+                loadTyres();
+                loadInsurance();
+                loadNotes();
+
+                backupInfo.textContent = "Sauvegarde importée avec succès.";
+                alert("Sauvegarde importée avec succès.");
+            } catch (err) {
+                console.error(err);
+                alert("Fichier invalide ou corrompu.");
+            }
+        };
+        reader.readAsText(file);
     });
 
     // ----- Chargement initial -----
